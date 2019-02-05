@@ -1,0 +1,10 @@
+---
+# defaults file for bvansomeren.nfsd
+nfsd_locking: True
+
+nfsd_interfaces: 
+- "{{ ansible_facts.vtnet1.ipv4[0].address }}"
+
+rpcbind_flags: "{% for ip in nfsd_interfaces %}-h {{ ip }}{% endfor %}"
+nfs_server_flags: "-u -t {% for ip in nfsd_interfaces %}-h {{ ip }}{% endfor %}"
+mountd_flags: "-r -S {% for ip in nfsd_interfaces %}-h {{ ip }}{% endfor %}"

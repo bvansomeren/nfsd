@@ -1,0 +1,50 @@
+---
+# tasks file for bvansomeren.nfsd
+
+- name: enable nfsd services
+  command: sysrc -f /etc/rc.conf {{ item }}_enable="YES"
+  register: sysrc_changed
+  changed_when:  "'YES -> YES' not in sysrc_changed.stdout"
+  with_items:
+  - rpcbind
+  - nfs_server
+  tags:
+  - startup
+
+- name: set mountd_flags
+  command: sysrc -f /etc/rc.conf mountd_flags="{{ mountd_flags }}"
+
+- name: set rpcbind_flags
+  command: sysrc -f /etc/rc.conf rpcbind_flags="{{ rpcbind_flags }}"
+
+- name: set nfs_server_flags
+  command: sysrc -f /etc/rc.conf nfs_server_flags="{{ nfs_server_flags }}"
+
+- name: start nfsd services
+  service:
+    name: nfsd
+    state: started
+  tags:
+  - startup
+
+- name: enable nfsd services
+  command: sysrc -f /etc/rc.conf {{ item }}_enable="YES"
+  register: sysrc_changed
+  changed_when:  "'YES -> YES' not in sysrc_changed.stdout"
+  when: nfsd_locking
+  with_items:
+  - rpc_lockd
+  - rpc_statd
+  tags:
+  - startup
+
+- name: start nfs locking services
+  service:
+    name: "{{ item }}"
+    state: started
+  with_items:
+  - lockd
+  - statd
+  when: nfsd_locking
+  tags:
+  - startup
